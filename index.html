@@ -106,6 +106,18 @@ footer strong{color:rgba(255,255,255,0.8);}
   main{padding:16px 14px 48px;}
   .card-topo{flex-direction:column;gap:6px;}
 }
+
+/* MODAL VISUALIZADOR */
+#modal-overlay{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.75);z-index:9999;flex-direction:column;}
+#modal-overlay.aberto{display:flex;}
+#modal-header{background:var(--azul);padding:12px 20px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
+#modal-titulo{color:#fff;font-size:0.82rem;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:calc(100% - 120px);}
+#modal-acoes{display:flex;gap:8px;flex-shrink:0;}
+#modal-baixar{display:inline-flex;align-items:center;gap:5px;background:rgba(255,255,255,0.15);color:#fff;border:1px solid rgba(255,255,255,0.3);border-radius:4px;padding:5px 12px;font-size:0.72rem;font-weight:600;font-family:'Inter',sans-serif;text-decoration:none;cursor:pointer;}
+#modal-baixar:hover{background:rgba(255,255,255,0.25);}
+#modal-fechar{background:rgba(255,255,255,0.15);color:#fff;border:1px solid rgba(255,255,255,0.3);border-radius:4px;padding:5px 12px;font-size:0.72rem;font-weight:600;font-family:'Inter',sans-serif;cursor:pointer;}
+#modal-fechar:hover{background:rgba(255,255,255,0.25);}
+#modal-frame{flex:1;border:none;background:#525659;}
 </style>
 </head>
 <body>
@@ -530,14 +542,69 @@ function esc(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").repl
 function hlText(txt,q){if(!q)return esc(txt);var r="",j=0,tl=txt.toLowerCase(),ql=q.toLowerCase(),len=ql.length;while(j<txt.length){var k=tl.indexOf(ql,j);if(k<0){r+=esc(txt.slice(j));break;}r+=esc(txt.slice(j,k))+"<mark>"+esc(txt.slice(k,k+len))+"</mark>";j=k+len;}return r;}
 function trechoTexto(txt,q){if(!txt||!q)return "";var tl=txt.toLowerCase(),ql=q.toLowerCase(),i=tl.indexOf(ql);if(i<0)return "";var a=Math.max(0,i-90),b=Math.min(txt.length,i+q.length+90);return hlText((a>0?"...":"")+txt.slice(a,b)+(b<txt.length?"...":""),q);}
 function getFiltrados(){var q=document.getElementById("busca").value.trim().toLowerCase();return DOCS.filter(function(d){if(filtro!=="Todos"&&d.tp!==filtro)return false;if(!q)return true;var txt=textos[decodeURIComponent(d.f)]||"";return d.t.toLowerCase().indexOf(q)>=0||d.tm.toLowerCase().indexOf(q)>=0||d.tp.toLowerCase().indexOf(q)>=0||String(d.a).indexOf(q)>=0||txt.indexOf(q)>=0;});}
-function card(d,q){var cor=COR[d.tp]||"#374151",ct=COR_TEXTO[d.tp]||"#e5e7eb";var txt=textos[decodeURIComponent(d.f)]||"",tr=trechoTexto(txt,q);return'<div class="card"><div class="card-topo"><span class="card-titulo">'+hlText(d.t,q)+'</span><div class="card-meta"><span class="badge" style="background:'+cor+';color:'+ct+'">'+esc(d.tp)+'</span><span class="ano">'+d.a+'</span></div></div>'+(tr?'<div class="trecho">'+tr+'</div>':"")+'<div class="card-rodape"><a class="btn-visualizar" href="https://docs.google.com/viewer?url='+encodeURIComponent(BASE+decodeURIComponent(d.f))+'" target="_blank">👁️ Visualizar</a><a class="btn-abrir" href="'+BASE+encodeURIComponent(decodeURIComponent(d.f))+'" target="_blank" download>📥 Baixar</a></div></div>';}
+function card(d,q){var cor=COR[d.tp]||"#374151",ct=COR_TEXTO[d.tp]||"#e5e7eb";var txt=textos[decodeURIComponent(d.f)]||"",tr=trechoTexto(txt,q);return'<div class="card"><div class="card-topo"><span class="card-titulo">'+hlText(d.t,q)+'</span><div class="card-meta"><span class="badge" style="background:'+cor+';color:'+ct+'">'+esc(d.tp)+'</span><span class="ano">'+d.a+'</span></div></div>'+(tr?'<div class="trecho">'+tr+'</div>':"")+'<div class="card-rodape"><button class="btn-visualizar" onclick="abrirModal(\'' + BASE+decodeURIComponent(d.f) + '\',\'' + d.t.replace(/'/g,"\\'" ) + '\')">👁️ Visualizar</button><a class="btn-abrir" href="'+BASE+encodeURIComponent(decodeURIComponent(d.f))+'" target="_blank" download>📥 Baixar</a></div></div>';}
 function rFiltros(){document.getElementById("filtros").innerHTML=tipos.map(function(t){return'<button class="fb'+(filtro===t?" ativo":"")+'" onclick="setF(\''+t+'\')">'+esc(t)+"</button>";}).join("");}
-function setF(t){filtro=t;rFiltros();render();}
+function setF(t){filtro=t;
+function abrirModal(url, titulo){
+  document.getElementById('modal-titulo').textContent = titulo;
+  document.getElementById('modal-baixar').href = url;
+  // Usa PDF.js via CDN para renderizar
+  var viewer = 'https://mozilla.github.io/pdf.js/web/viewer.html?file=' + encodeURIComponent(url);
+  document.getElementById('modal-frame').src = viewer;
+  document.getElementById('modal-overlay').classList.add('aberto');
+  document.body.style.overflow = 'hidden';
+}
+function fecharModal(){
+  document.getElementById('modal-overlay').classList.remove('aberto');
+  document.getElementById('modal-frame').src = '';
+  document.body.style.overflow = '';
+}
+document.getElementById('modal-overlay').addEventListener('click', function(e){
+  if(e.target === this) fecharModal();
+});
+document.addEventListener('keydown', function(e){
+  if(e.key === 'Escape') fecharModal();
+});
+
+rFiltros();render();}
 function setA(a){aba=a;document.getElementById("at").className="aba"+(a==="t"?" ativa":"");document.getElementById("ab").className="aba"+(a==="b"?" ativa":"");render();}
 function onB(){var v=document.getElementById("busca").value.trim();if(v)setA("b");else setA("t");render();}
 function render(){if(!textoCarregado){document.getElementById("conteudo").innerHTML='<p class="carregando">Carregando acervo normativo...</p>';return;}var q=document.getElementById("busca").value.trim(),ds=getFiltrados(),el=document.getElementById("conteudo");document.getElementById("ab").textContent="Resultados da Busca"+(q?" ("+ds.length+")":"");if(aba==="t"&&!q){var m={};ds.forEach(function(d){if(!m[d.tm])m[d.tm]=[];m[d.tm].push(d);});var temas=Object.keys(m);if(!temas.length){el.innerHTML='<p class="vazio">Nenhum documento encontrado.</p>';return;}el.innerHTML=temas.map(function(tm){return'<div class="secao"><button class="sh" onclick="tog(this)"><span class="sh-icone">'+(ICO[tm]||"📄")+'</span><span class="sh-titulo">'+esc(tm)+'</span><span class="sh-count">'+m[tm].length+'</span><span class="sh-toggle">▲</span></button><div class="sd">'+m[tm].map(function(d){return card(d,"");}).join("")+"</div></div>";}).join("");}else{if(!ds.length){el.innerHTML='<p class="vazio">Nenhum resultado para "'+esc(q)+'".</p>';return;}el.innerHTML='<p class="ri">'+ds.length+' documento'+(ds.length>1?"s":"")+" encontrado"+(ds.length>1?"s":"")+" para <strong>"+esc(q)+"</strong></p>"+ds.map(function(d){return'<div class="resultado-card">'+card(d,q)+'</div>';}).join("");}}
 function tog(btn){var sd=btn.parentElement.querySelector(".sd");sd.classList.toggle("fechado");btn.querySelector(".sh-toggle").textContent=sd.classList.contains("fechado")?"▼":"▲";}
+
+function abrirModal(url, titulo){
+  document.getElementById('modal-titulo').textContent = titulo;
+  document.getElementById('modal-baixar').href = url;
+  // Usa PDF.js via CDN para renderizar
+  var viewer = 'https://mozilla.github.io/pdf.js/web/viewer.html?file=' + encodeURIComponent(url);
+  document.getElementById('modal-frame').src = viewer;
+  document.getElementById('modal-overlay').classList.add('aberto');
+  document.body.style.overflow = 'hidden';
+}
+function fecharModal(){
+  document.getElementById('modal-overlay').classList.remove('aberto');
+  document.getElementById('modal-frame').src = '';
+  document.body.style.overflow = '';
+}
+document.getElementById('modal-overlay').addEventListener('click', function(e){
+  if(e.target === this) fecharModal();
+});
+document.addEventListener('keydown', function(e){
+  if(e.key === 'Escape') fecharModal();
+});
+
 rFiltros();render();
 </script>
+
+<div id="modal-overlay">
+  <div id="modal-header">
+    <span id="modal-titulo">Documento</span>
+    <div id="modal-acoes">
+      <a id="modal-baixar" href="#" download>📥 Baixar</a>
+      <button id="modal-fechar" onclick="fecharModal()">✕ Fechar</button>
+    </div>
+  </div>
+  <iframe id="modal-frame" src=""></iframe>
+</div>
 </body>
 </html>
