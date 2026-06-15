@@ -38,12 +38,14 @@ main{max-width:900px;margin:0 auto;padding:24px 16px 48px}
 .cm{display:flex;gap:7px;align-items:center;flex-shrink:0}
 .badge{font-size:0.66rem;font-weight:700;padding:2px 8px;border-radius:4px;color:#fff;text-transform:uppercase;letter-spacing:0.04em;white-space:nowrap}
 .ano{font-size:0.74rem;color:#9ca3af}
+.trecho{font-size:0.78rem;color:#6b7280;line-height:1.5;font-style:italic;background:#f9fafb;padding:6px 10px;border-radius:4px;border-left:3px solid #d1d5db}
+mark{background:#fef08a;border-radius:2px;padding:0 1px}
 .cr{display:flex;justify-content:flex-end;margin-top:4px}
 .btn{display:inline-flex;align-items:center;gap:6px;background:#1b3a5c;color:#fff;border:none;border-radius:6px;padding:7px 14px;font-size:0.78rem;font-weight:600;text-decoration:none}
 .btn:hover{background:#22577a}
 .ri{font-size:0.84rem;color:#6b7280;margin-bottom:16px}
-mark{background:#fef08a;border-radius:2px;padding:0 1px}
 .vazio{text-align:center;color:#9ca3af;margin-top:56px}
+.carregando{text-align:center;color:#6b7280;margin-top:40px;font-size:0.9rem}
 footer{text-align:center;padding:20px;font-size:0.7rem;color:#9ca3af}
 </style>
 </head>
@@ -56,7 +58,7 @@ footer{text-align:center;padding:20px;font-size:0.7rem;color:#9ca3af}
   </div>
   <div class="sw">
     <span class="si">&#128269;</span>
-    <input id="busca" type="text" placeholder="Pesquise por titulo, tipo ou tema do documento..." oninput="onB()"/>
+    <input id="busca" type="text" placeholder="Pesquise por qualquer palavra do conteudo dos documentos..." oninput="onB()"/>
   </div>
   <div class="abas">
     <button class="aba ativa" id="at" onclick="setA('t')">Por Tema</button>
@@ -66,7 +68,7 @@ footer{text-align:center;padding:20px;font-size:0.7rem;color:#9ca3af}
 </header>
 <main>
 <div class="filtros" id="filtros"></div>
-<div id="conteudo"></div>
+<div id="conteudo"><p class="carregando">Carregando documentos...</p></div>
 </main>
 <footer>PCMA - Repositorio Interno de Atos Normativos - 2025</footer>
 <script>
@@ -143,9 +145,24 @@ var DOCS=[
 {t:"Coletanea de Normas Aplicaveis a Policia Civil-MA",tp:"Coletanea",tm:"Legislacao",a:2023,f:"Colet%C3%A2nea de normas aplic%C3%A1veis %C3%A0 Pol%C3%ADcia Civil-MA.doc"}
 ];
 
+var textos={};
 var tipos=["Todos"];
 DOCS.forEach(function(d){if(tipos.indexOf(d.tp)<0)tipos.push(d.tp);});
 var aba="t",filtro="Todos";
+var textoCarregado=false;
+
+// Carrega textos.json separadamente
+fetch(BASE+"textos_limpo.json")
+  .then(function(r){return r.json();})
+  .then(function(data){
+    textos=data;
+    textoCarregado=true;
+    render();
+  })
+  .catch(function(){
+    textoCarregado=true;
+    render();
+  });
 
 function esc(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}
 function hlText(txt,q){
@@ -154,17 +171,30 @@ function hlText(txt,q){
   while(j<txt.length){var k=tl.indexOf(ql,j);if(k<0){r+=esc(txt.slice(j));break;}r+=esc(txt.slice(j,k))+"<mark>"+esc(txt.slice(k,k+len))+"</mark>";j=k+len;}
   return r;
 }
+function trechoTexto(txt,q){
+  if(!txt||!q)return "";
+  var tl=txt.toLowerCase(),ql=q.toLowerCase();
+  var i=tl.indexOf(ql);
+  if(i<0)return "";
+  var a=Math.max(0,i-80),b=Math.min(txt.length,i+q.length+80);
+  var trecho=(a>0?"...":"")+txt.slice(a,b)+(b<txt.length?"...":"");
+  return hlText(trecho,q);
+}
+function nomeArquivo(f){return decodeURIComponent(f);}
 function getFiltrados(){
   var q=document.getElementById("busca").value.trim().toLowerCase();
   return DOCS.filter(function(d){
     if(filtro!=="Todos"&&d.tp!==filtro)return false;
     if(!q)return true;
-    return d.t.toLowerCase().indexOf(q)>=0||d.tm.toLowerCase().indexOf(q)>=0||d.tp.toLowerCase().indexOf(q)>=0||String(d.a).indexOf(q)>=0;
+    var txtDoc=textos[nomeArquivo(d.f)]||"";
+    return d.t.toLowerCase().indexOf(q)>=0||d.tm.toLowerCase().indexOf(q)>=0||d.tp.toLowerCase().indexOf(q)>=0||String(d.a).indexOf(q)>=0||txtDoc.toLowerCase().indexOf(q)>=0;
   });
 }
 function card(d,q){
   var cor=COR[d.tp]||"#374151";
-  return '<div class="card" style="border-left-color:'+cor+'"><div class="ct"><span class="ctit">'+hlText(d.t,q)+'</span><div class="cm"><span class="badge" style="background:'+cor+'">'+esc(d.tp)+'</span><span class="ano">'+d.a+'</span></div></div><div class="cr"><a class="btn" href="'+BASE+d.f+'" target="_blank">&#128196; Abrir documento</a></div></div>';
+  var txtDoc=textos[nomeArquivo(d.f)]||"";
+  var tr=trechoTexto(txtDoc,q);
+  return '<div class="card" style="border-left-color:'+cor+'"><div class="ct"><span class="ctit">'+hlText(d.t,q)+'</span><div class="cm"><span class="badge" style="background:'+cor+'">'+esc(d.tp)+'</span><span class="ano">'+d.a+'</span></div></div>'+(tr?'<div class="trecho">'+tr+'</div>':"")+'<div class="cr"><a class="btn" href="'+BASE+d.f+'" target="_blank">&#128196; Abrir documento</a></div></div>';
 }
 function rFiltros(){
   document.getElementById("filtros").innerHTML=tipos.map(function(t){return'<button class="fb'+(filtro===t?" ativo":"")+'" onclick="setF(\''+t+'\')">'+esc(t)+"</button>";}).join("");
@@ -173,6 +203,7 @@ function setF(t){filtro=t;rFiltros();render();}
 function setA(a){aba=a;document.getElementById("at").className="aba"+(a==="t"?" ativa":"");document.getElementById("ab").className="aba"+(a==="b"?" ativa":"");render();}
 function onB(){var v=document.getElementById("busca").value.trim();if(v)setA("b");else setA("t");render();}
 function render(){
+  if(!textoCarregado){document.getElementById("conteudo").innerHTML='<p class="carregando">Carregando...</p>';return;}
   var q=document.getElementById("busca").value.trim();
   var ds=getFiltrados();
   var el=document.getElementById("conteudo");
