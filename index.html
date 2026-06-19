@@ -19,6 +19,9 @@ header{background:var(--azul);box-shadow:0 2px 12px rgba(1,0,153,.3)}
 .header-eyebrow{font-size:.6rem;font-weight:600;letter-spacing:.18em;color:rgba(255,255,255,.7);text-transform:uppercase;margin-bottom:2px}
 .header-titulo{font-size:1.25rem;font-weight:700;color:var(--branco);line-height:1.2}
 .header-subtitulo{font-size:.72rem;color:rgba(255,255,255,.6);margin-top:2px}
+.header-info{margin-left:auto;text-align:right;flex-shrink:0}
+.header-contador{font-size:1.4rem;font-weight:700;color:var(--branco);line-height:1}
+.header-contador-label{font-size:.6rem;color:rgba(255,255,255,.55);text-transform:uppercase;letter-spacing:.08em;margin-top:2px}
 .busca-wrap{position:relative}
 .busca-icone{position:absolute;left:16px;top:50%;transform:translateY(-50%);color:var(--azul);font-size:1rem;pointer-events:none}
 #busca{width:100%;padding:13px 16px 13px 44px;background:var(--branco);border:none;border-radius:6px 6px 0 0;color:var(--texto);font-size:.88rem;font-family:'Inter',sans-serif;outline:none}
@@ -51,6 +54,14 @@ main{max-width:1000px;margin:0 auto;padding:24px 24px 60px}
 .ano{font-size:.7rem;color:var(--cinza-texto);font-weight:500}
 .trecho{font-size:.76rem;color:var(--cinza-texto);line-height:1.6;font-style:italic;background:#f8f9fc;padding:7px 12px;border-radius:4px;border-left:3px solid var(--azul)}
 mark{background:#fff3b0;color:#7a5500;border-radius:2px;padding:0 2px}
+.badge-revogado{background:#dc2626;color:#fff;font-size:.58rem;font-weight:700;padding:3px 8px;border-radius:3px;text-transform:uppercase;letter-spacing:.06em;white-space:nowrap;margin-left:4px}
+.filtro-periodo{display:flex;align-items:center;gap:8px;padding:8px 0 4px;border-top:1px solid rgba(255,255,255,.1);margin-top:6px}
+.filtro-periodo label{font-size:.68rem;color:rgba(255,255,255,.6);font-weight:500}
+.filtro-periodo input{width:70px;padding:4px 8px;border-radius:4px;border:1px solid rgba(255,255,255,.3);background:rgba(255,255,255,.1);color:#fff;font-size:.75rem;font-family:'Inter',sans-serif;text-align:center;outline:none}
+.filtro-periodo input::placeholder{color:rgba(255,255,255,.4)}
+.filtro-periodo input:focus{border-color:rgba(255,255,255,.7)}
+.filtro-periodo button{padding:4px 12px;border-radius:4px;border:1px solid rgba(255,255,255,.3);background:rgba(255,255,255,.15);color:rgba(255,255,255,.8);font-size:.68rem;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif}
+.filtro-periodo button:hover{background:rgba(255,255,255,.25)}
 .card-rodape{display:flex;justify-content:flex-end;gap:8px;margin-top:2px}
 .btn-abrir{display:inline-flex;align-items:center;gap:6px;background:var(--azul);color:var(--branco);border:none;border-radius:4px;padding:6px 14px;font-size:.72rem;font-weight:600;font-family:'Inter',sans-serif;text-decoration:none;transition:background .15s;cursor:pointer}
 .btn-abrir:hover{background:var(--azul-claro)}
@@ -71,7 +82,7 @@ footer strong{color:rgba(255,255,255,.8)}
 .modal-btn:hover{background:rgba(255,255,255,.25)}
 #modal-btns{display:flex;gap:8px;flex-shrink:0}
 #modal-iframe{flex:1;border:none;background:#525659}
-@media(max-width:600px){.header-titulo{font-size:1rem}.brasao{width:46px;height:46px}main{padding:16px 14px 48px}.card-topo{flex-direction:column;gap:6px}}
+@media(max-width:600px){.header-titulo{font-size:1rem}.brasao{width:46px;height:46px}main{padding:16px 14px 48px}.card-topo{flex-direction:column;gap:6px}.header-info{display:none}}
 </style>
 </head>
 <body>
@@ -89,12 +100,23 @@ footer strong{color:rgba(255,255,255,.8)}
 <div class="header-titulo">Base Normativa</div>
 <div class="header-subtitulo">Repositório de Atos Normativos · Uso interno</div>
 </div>
+<div class="header-info">
+<div class="header-contador" id="total-docs">573</div>
+<div class="header-contador-label">documentos</div>
+</div>
 </div>
 <div class="busca-wrap">
 <span class="busca-icone">🔍</span>
 <input id="busca" type="text" placeholder="Pesquise por qualquer palavra nos documentos..." oninput="onB()"/>
 </div>
 <div class="filtros" id="filtros"></div>
+<div class="filtro-periodo" id="filtro-periodo">
+<label>Período:</label>
+<input type="text" id="ano-de" placeholder="De" maxlength="4" oninput="onB()"/>
+<label>a</label>
+<input type="text" id="ano-ate" placeholder="Até" maxlength="4" oninput="onB()"/>
+<button onclick="limparPeriodo()">Limpar</button>
+</div>
 <div class="abas">
 <button class="aba ativa" id="at" onclick="setA('t')">Por Tema</button>
 <button class="aba" id="ab" onclick="setA('b')">Resultados da Busca</button>
@@ -117,15 +139,15 @@ footer strong{color:rgba(255,255,255,.8)}
 </div>
 <script>
 var BASE="https://raw.githubusercontent.com/juridicopcma/respositorioPCMA/main/";
-var COR={"Decreto":"#7c2d12","Instrução Normativa":"#1e3a8a","Portaria":"#14532d","Resolução":"#4c1d95","Lei":"#713f12","Lei Complementar":"#7c2d00","Manual":"#134e4a","Material de Estudo":"#374151","Coletânea":"#1e3a8a","Nota Técnica":"#831843","Cartilha":"#7c2d12","Medida Provisória":"#064e3b","Diário Oficial":"#1e3a5f","Convênio":"#4c1d5f","Termo de Cooperação":"#14532d","Ato Administrativo":"#3f3f00","Ofício Circular":"#7c1a2a","Parecer":"#1a4a1a","Provimento":"#1a2a5f","Termo Aditivo":"#5f2a1a","Emenda Constitucional":"#4a1a3a"};
-var COR_T={"Decreto":"#fed7aa","Instrução Normativa":"#bfdbfe","Portaria":"#bbf7d0","Resolução":"#ede9fe","Lei":"#fef3c7","Lei Complementar":"#fde68a","Manual":"#ccfbf1","Material de Estudo":"#e5e7eb","Coletânea":"#bfdbfe","Nota Técnica":"#fce7f3","Cartilha":"#fed7aa","Medida Provisória":"#a7f3d0","Diário Oficial":"#bfdbfe","Convênio":"#ede9fe","Termo de Cooperação":"#bbf7d0","Ato Administrativo":"#fef9c3","Ofício Circular":"#fecdd3","Parecer":"#bbf7d0","Provimento":"#bfdbfe","Termo Aditivo":"#fed7aa","Emenda Constitucional":"#fce7f3"};
+var COR={"Decreto":"#7c2d12","Instrução Normativa":"#1e3a8a","Portaria":"#14532d","Resolução":"#4c1d95","Lei":"#713f12","Lei Complementar":"#7c2d00","Manual":"#134e4a","Material de Estudo":"#374151","Coletânea":"#1e3a8a","Nota Técnica":"#831843","Cartilha":"#7c2d12","Medida Provisória":"#064e3b","Diário Oficial":"#1e3a5f","Convênio":"#4c1d5f","Termo de Cooperação":"#14532d","Ato Administrativo":"#3f3f00","Ofício Circular":"#7c1a2a","Parecer":"#1a4a1a","Provimento":"#1a2a5f","Termo Aditivo":"#5f2a1a","Emenda Constitucional":"#4a1a3a","Regimento":"#1a3a4a","Planejamento Estratégico":"#2d4a1a"};
+var COR_T={"Decreto":"#fed7aa","Instrução Normativa":"#bfdbfe","Portaria":"#bbf7d0","Resolução":"#ede9fe","Lei":"#fef3c7","Lei Complementar":"#fde68a","Manual":"#ccfbf1","Material de Estudo":"#e5e7eb","Coletânea":"#bfdbfe","Nota Técnica":"#fce7f3","Cartilha":"#fed7aa","Medida Provisória":"#a7f3d0","Diário Oficial":"#bfdbfe","Convênio":"#ede9fe","Termo de Cooperação":"#bbf7d0","Ato Administrativo":"#fef9c3","Ofício Circular":"#fecdd3","Parecer":"#bbf7d0","Provimento":"#bfdbfe","Termo Aditivo":"#fed7aa","Emenda Constitucional":"#fce7f3","Regimento":"#bae6fd","Planejamento Estratégico":"#d9f99d"};
 var ICO={"Estrutura Organizacional":"🏢","Administração":"📋","Gestão de Pessoal":"👥","Plantões e Escalas":"🕐","Investigação Criminal":"🔍","Perícia e Forense":"🔬","Processo Administrativo Disciplinar":"⚖️","Legislação":"📜","Segurança Pública":"🛡️","Comunicação Institucional":"📢","Armamento":"🔒","Tecnologia da Informação":"💻","Material de Referência":"📚","Direitos Humanos":"🤝","Administração Penitenciária":"🏛️"};
 var DOCS=[
-{t:"1 - REGIMENTO DA GERENCIA DE ESTADO DA JUSTIÇA, SEGURANÇA E CIDADANIA - DECRETO Nº 16.969-1999",tp:"Decreto",tm:"Estrutura Organizacional",a:1999,f:"1%20-%20REGIMENTO%20DA%20GERENCIA%20DE%20ESTADO%20DA%20JUSTI%C3%87A%2C%20SEGURAN%C3%87A%20E%20CIDADANIA%20-%20DECRETO%20N%C2%BA%2016.969-1999.pdf"},
-{t:"2- REGIMENTO DA ACADEMIA INTEGRADA DE SEGURANÇA PÚBLICA - AISP-MA - DECRETO Nº 19.497-2023",tp:"Decreto",tm:"Estrutura Organizacional",a:2023,f:"2-%20REGIMENTO%20DA%20ACADEMIA%20INTEGRADA%20DE%20SEGURAN%C3%87A%20P%C3%9ABLICA%20-%20AISP-MA%20-%20DECRETO%20N%C2%BA%2019.497-2023.pdf"},
-{t:"3 - REGIMENTO DA CORREGEDORIA DO SISTEMA ESTADUAL DE SEGURANÇA PÚBLICA - DECRETO Nº 19.507-2023",tp:"Decreto",tm:"Estrutura Organizacional",a:2023,f:"3%20-%20REGIMENTO%20DA%20CORREGEDORIA%20DO%20SISTEMA%20ESTADUAL%20DE%20SEGURAN%C3%87A%20P%C3%9ABLICA%20-%20DECRETO%20N%C2%BA%2019.507-2023.pdf"},
-{t:"6 - REGIMENTO INTERNO DO CONSELHO SUPERIOR DE POLÍCIA DA SECRETARIA DE SEGURANÇA PÚBLICA DO ESTADO DO MARANHÃO",tp:"Decreto",tm:"Estrutura Organizacional",a:2020,f:"6%20-%20REGIMENTO%20INTERNO%20DO%20CONSELHO%20SUPERIOR%20DE%20POL%C3%8DCIA%20DA%20SECRETARIA%20DE%20SEGURAN%C3%87A%20P%C3%9ABLICA%20DO%20ESTADO%20DO%20MARANH%C3%83O.pdf"},
-{t:"7 - REGIMENTO  DA  SECRETARIA  DE  ESTADO  DA SEGURANÇA  PÚBLICA - DECRETO Nº 28.829-2013",tp:"Decreto",tm:"Estrutura Organizacional",a:2013,f:"7%20-%20REGIMENTO%20%20DA%20%20SECRETARIA%20%20DE%20%20ESTADO%20%20DA%20SEGURAN%C3%87A%20%20P%C3%9ABLICA%20-%20DECRETO%20N%C2%BA%2028.829-2013.pdf"},
+{t:"1 - REGIMENTO DA GERENCIA DE ESTADO DA JUSTIÇA, SEGURANÇA E CIDADANIA - DECRETO Nº 16.969-1999",tp:"Regimento",tm:"Estrutura Organizacional",a:1999,f:"1%20-%20REGIMENTO%20DA%20GERENCIA%20DE%20ESTADO%20DA%20JUSTI%C3%87A%2C%20SEGURAN%C3%87A%20E%20CIDADANIA%20-%20DECRETO%20N%C2%BA%2016.969-1999.pdf"},
+{t:"2- REGIMENTO DA ACADEMIA INTEGRADA DE SEGURANÇA PÚBLICA - AISP-MA - DECRETO Nº 19.497-2023",tp:"Regimento",tm:"Estrutura Organizacional",a:2023,f:"2-%20REGIMENTO%20DA%20ACADEMIA%20INTEGRADA%20DE%20SEGURAN%C3%87A%20P%C3%9ABLICA%20-%20AISP-MA%20-%20DECRETO%20N%C2%BA%2019.497-2023.pdf"},
+{t:"3 - REGIMENTO DA CORREGEDORIA DO SISTEMA ESTADUAL DE SEGURANÇA PÚBLICA - DECRETO Nº 19.507-2023",tp:"Regimento",tm:"Estrutura Organizacional",a:2023,f:"3%20-%20REGIMENTO%20DA%20CORREGEDORIA%20DO%20SISTEMA%20ESTADUAL%20DE%20SEGURAN%C3%87A%20P%C3%9ABLICA%20-%20DECRETO%20N%C2%BA%2019.507-2023.pdf"},
+{t:"6 - REGIMENTO INTERNO DO CONSELHO SUPERIOR DE POLÍCIA DA SECRETARIA DE SEGURANÇA PÚBLICA DO ESTADO DO MARANHÃO",tp:"Regimento",tm:"Estrutura Organizacional",a:2020,f:"6%20-%20REGIMENTO%20INTERNO%20DO%20CONSELHO%20SUPERIOR%20DE%20POL%C3%8DCIA%20DA%20SECRETARIA%20DE%20SEGURAN%C3%87A%20P%C3%9ABLICA%20DO%20ESTADO%20DO%20MARANH%C3%83O.pdf"},
+{t:"7 - REGIMENTO  DA  SECRETARIA  DE  ESTADO  DA SEGURANÇA  PÚBLICA - DECRETO Nº 28.829-2013",tp:"Regimento",tm:"Estrutura Organizacional",a:2013,f:"7%20-%20REGIMENTO%20%20DA%20%20SECRETARIA%20%20DE%20%20ESTADO%20%20DA%20SEGURAN%C3%87A%20%20P%C3%9ABLICA%20-%20DECRETO%20N%C2%BA%2028.829-2013.pdf"},
 {t:"ADITAMENTO TAC MUTIRÃO  2025",tp:"Termo Aditivo",tm:"Investigação Criminal",a:2025,f:"ADITAMENTO%20TAC%20MUTIR%C3%83O__2025.pdf"},
 {t:"anotacoes-sobre-pad 2020",tp:"Material de Estudo",tm:"Processo Administrativo Disciplinar",a:2020,f:"anotacoes-sobre-pad_2020.pdf"},
 {t:"cartilha servidor compressed",tp:"Manual",tm:"Administração",a:2020,f:"cartilha_servidor_compressed.pdf"},
@@ -168,9 +190,9 @@ var DOCS=[
 {t:"DECRETO N. 22.925-2007 - ESTRUTURA ORGANIZACIONAL DA POLÍCIA CIVIL DO MARANHÃO",tp:"Decreto",tm:"Estrutura Organizacional",a:2007,f:"DECRETO%20N.%2022.925-2007%20-%20ESTRUTURA%20ORGANIZACIONAL%20DA%20POL%C3%8DCIA%20CIVIL%20DO%20MARANH%C3%83O.pdf"},
 {t:"DECRETO N. 25.184-2009 - ALTERA O DECRETO Nº 19.837-2003 - CONSELHO SUPERIOR DE SEGURANÇA PÚBLICA",tp:"Decreto",tm:"Estrutura Organizacional",a:2003,f:"DECRETO%20N.%2025.184-2009%20-%20ALTERA%20O%20DECRETO%20N%C2%BA%2019.837-2003%20-%20CONSELHO%20SUPERIOR%20DE%20SEGURAN%C3%87A%20P%C3%9ABLICA.pdf"},
 {t:"DECRETO N. 27.239-2011 - ORGANIZAÇÃO DA SEJAP",tp:"Decreto",tm:"Estrutura Organizacional",a:2011,f:"DECRETO%20N.%2027.239-2011%20-%20ORGANIZA%C3%87%C3%83O%20DA%20SEJAP.pdf"},
-{t:"DECRETO N. 27.549-2011 - REGIMENTO DA SECRETARIA DE ESTADO DA JUSTIÇA E ADMINISTRAÇÃO PENITENCIÁRIA - SEJAP",tp:"Decreto",tm:"Estrutura Organizacional",a:2011,f:"DECRETO%20N.%2027.549-2011%20-%20REGIMENTO%20DA%20SECRETARIA%20DE%20ESTADO%20DA%20JUSTI%C3%87A%20E%20ADMINISTRA%C3%87%C3%83O%20PENITENCI%C3%81RIA%20-%20SEJAP.pdf"},
+{t:"DECRETO N. 27.549-2011 - REGIMENTO DA SECRETARIA DE ESTADO DA JUSTIÇA E ADMINISTRAÇÃO PENITENCIÁRIA - SEJAP",tp:"Regimento",tm:"Estrutura Organizacional",a:2011,f:"DECRETO%20N.%2027.549-2011%20-%20REGIMENTO%20DA%20SECRETARIA%20DE%20ESTADO%20DA%20JUSTI%C3%87A%20E%20ADMINISTRA%C3%87%C3%83O%20PENITENCI%C3%81RIA%20-%20SEJAP.pdf"},
 {t:"DECRETO N. 28.827-2013 - REGULA A GRATIFICAÇÃO DE COMPLEMENTAÇÃO DE JORNADA OPERACIONAL - POLÍCIAS CIVIL E MILITAR",tp:"Decreto",tm:"Gestão de Pessoal",a:2013,f:"DECRETO%20N.%2028.827-2013%20-%20REGULA%20A%20GRATIFICA%C3%87%C3%83O%20DE%20COMPLEMENTA%C3%87%C3%83O%20DE%20JORNADA%20OPERACIONAL%20-%20POL%C3%8DCIAS%20CIVIL%20E%20MILITAR.pdf"},
-{t:"DECRETO Nº 16.969 DE 1999 - Regimento GESEP",tp:"Decreto",tm:"Estrutura Organizacional",a:1999,f:"DECRETO%20N%C2%BA%2016.969%20DE%201999%20-%20Regimento_GESEP.pdf"},
+{t:"DECRETO Nº 16.969 DE 1999 - Regimento GESEP",tp:"Regimento",tm:"Estrutura Organizacional",a:1999,f:"DECRETO%20N%C2%BA%2016.969%20DE%201999%20-%20Regimento_GESEP.pdf"},
 {t:"DECRETO Nº 17.185-2000 - PLANO DE DIRETRIZES BÁSICAS PARA A CAPACITAÇÃO DOS SERVIDORES DO ESTADO",tp:"Decreto",tm:"Gestão de Pessoal",a:2000,f:"DECRETO%20N%C2%BA%2017.185-2000%20-%20PLANO%20DE%20DIRETRIZES%20B%C3%81SICAS%20PARA%20A%20CAPACITA%C3%87%C3%83O%20DOS%20SERVIDORES%20DO%20ESTADO.pdf"},
 {t:"DECRETO Nº 18.214 DE  2001. Criação das áreas integradas de segurança, pag 01 e 02",tp:"Decreto",tm:"Administração",a:2001,f:"DECRETO%20N%C2%BA%2018.214%20DE%20%202001.%20Cria%C3%A7%C3%A3o%20das%20%C3%A1reas%20integradas%20de%20seguran%C3%A7a%2C%20pag%2001%20e%2002.pdf"},
 {t:"Decreto nº 19.496 2003",tp:"Decreto",tm:"Administração",a:2003,f:"Decreto%20n%C2%BA%2019.496_2003.pdf"},
@@ -193,9 +215,9 @@ var DOCS=[
 {t:"Decreto nº 22.647 2006",tp:"Decreto",tm:"Administração",a:2006,f:"Decreto%20n%C2%BA%2022.647_2006.pdf"},
 {t:"Decreto nº 22.705 2006",tp:"Decreto",tm:"Administração",a:2006,f:"Decreto%20n%C2%BA%2022.705_2006.pdf"},
 {t:"Decreto nº 22.736 2006",tp:"Decreto",tm:"Administração",a:2006,f:"Decreto%20n%C2%BA%2022.736_2006.pdf"},
-{t:"DECRETO Nº 22.885-2006 - REGIMENTO INTERNO DO GABINETE DE GESTÃO INTEGRADA DE SEGURANÇA PÚBLICA - DOEMA 29-12-2006",tp:"Decreto",tm:"Estrutura Organizacional",a:2006,f:"DECRETO%20N%C2%BA%2022.885-2006%20-%20REGIMENTO%20INTERNO%20DO%20GABINETE%20DE%20GEST%C3%83O%20INTEGRADA%20DE%20SEGURAN%C3%87A%20P%C3%9ABLICA%20-%20DOEMA%2029-12-2006.pdf"},
+{t:"DECRETO Nº 22.885-2006 - REGIMENTO INTERNO DO GABINETE DE GESTÃO INTEGRADA DE SEGURANÇA PÚBLICA - DOEMA 29-12-2006",tp:"Regimento",tm:"Estrutura Organizacional",a:2006,f:"DECRETO%20N%C2%BA%2022.885-2006%20-%20REGIMENTO%20INTERNO%20DO%20GABINETE%20DE%20GEST%C3%83O%20INTEGRADA%20DE%20SEGURAN%C3%87A%20P%C3%9ABLICA%20-%20DOEMA%2029-12-2006.pdf"},
 {t:"DECRETO Nº 22.925 DE 2007 - estrutura organizacional da PCMA - Pag. 1 a 6",tp:"Decreto",tm:"Estrutura Organizacional",a:2007,f:"DECRETO%20N%C2%BA%2022.925%20DE%202007%20-%20estrutura%20organizacional%20da%20PCMA%20-%20Pag.%201%20a%206.pdf"},
-{t:"DECRETO Nº 22.934-2007 - REGIMENTO INTERNO DO CONSELHO DE POLÍCIA CIVIL",tp:"Decreto",tm:"Estrutura Organizacional",a:2007,f:"DECRETO%20N%C2%BA%2022.934-2007%20-%20REGIMENTO%20INTERNO%20DO%20CONSELHO%20DE%20POL%C3%8DCIA%20CIVIL.pdf"},
+{t:"DECRETO Nº 22.934-2007 - REGIMENTO INTERNO DO CONSELHO DE POLÍCIA CIVIL",tp:"Regimento",tm:"Estrutura Organizacional",a:2007,f:"DECRETO%20N%C2%BA%2022.934-2007%20-%20REGIMENTO%20INTERNO%20DO%20CONSELHO%20DE%20POL%C3%8DCIA%20CIVIL.pdf"},
 {t:"DECRETO Nº 22.985 DE 2007 - Concessão de Diárias - PAG 1 a 2",tp:"Decreto",tm:"Gestão de Pessoal",a:2007,f:"DECRETO%20N%C2%BA%2022.985%20DE%202007%20-%20Concess%C3%A3o%20de%20Di%C3%A1rias%20-%20PAG%201%20a%202.pdf"},
 {t:"Decreto nº 23.107 2007",tp:"Decreto",tm:"Administração",a:2007,f:"Decreto%20n%C2%BA%2023.107_2007.pdf"},
 {t:"DECRETO Nº 24.364 DE 2008 - Regulamentação de viagens - PAG 1",tp:"Decreto",tm:"Administração",a:2008,f:"DECRETO%20N%C2%BA%2024.364%20DE%202008%20-%20Regulamenta%C3%A7%C3%A3o%20de%20viagens%20-%20PAG%201.pdf"},
@@ -204,12 +226,12 @@ var DOCS=[
 {t:"DECRETO Nº 27.640-2011 - DISCIPLINA O FUNCIONAMENTO DAS UNIDADES PRISIONAIS - DOE 25-08-2011",tp:"Decreto",tm:"Administração Penitenciária",a:2011,f:"DECRETO%20N%C2%BA%2027.640-2011%20-%20DISCIPLINA%20O%20FUNCIONAMENTO%20DAS%20UNIDADES%20PRISIONAIS%20-%20DOE%2025-08-2011.pdf"},
 {t:"Decreto nº 28.608 2012",tp:"Decreto",tm:"Administração",a:2012,f:"Decreto%20n%C2%BA%2028.608_2012.pdf"},
 {t:"Decreto nº 28.730 de 04.12.2012 - cartão corporativo",tp:"Decreto",tm:"Administração",a:2012,f:"Decreto%20n%C2%BA%2028.730%20de%2004.12.2012%20-%20cart%C3%A3o%20corporativo.pdf"},
-{t:"DECRETO Nº 28.772-2012 - REGIMENTO INTERNO DA SEGEP",tp:"Decreto",tm:"Estrutura Organizacional",a:2012,f:"DECRETO%20N%C2%BA%2028.772-2012%20-%20REGIMENTO%20INTERNO%20DA%20SEGEP.pdf"},
+{t:"DECRETO Nº 28.772-2012 - REGIMENTO INTERNO DA SEGEP",tp:"Regimento",tm:"Estrutura Organizacional",a:2012,f:"DECRETO%20N%C2%BA%2028.772-2012%20-%20REGIMENTO%20INTERNO%20DA%20SEGEP.pdf"},
 {t:"Decreto nº 28.790 2012",tp:"Decreto",tm:"Administração",a:2012,f:"Decreto%20n%C2%BA%2028.790_2012.pdf"},
 {t:"Decreto nº 28.798 2012",tp:"Decreto",tm:"Administração",a:2012,f:"Decreto%20n%C2%BA%2028.798_2012.pdf"},
 {t:"Decreto nº 28.826 2013",tp:"Decreto",tm:"Administração",a:2013,f:"Decreto%20n%C2%BA%2028.826_2013.pdf"},
 {t:"DECRETO Nº 28.827 - 2013 - regulamenta pagamento gratificação por jornada operacional",tp:"Decreto",tm:"Gestão de Pessoal",a:2013,f:"DECRETO%20N%C2%BA%2028.827%20-%202013%20-%20regulamenta%20pagamento%20gratifica%C3%A7%C3%A3o%20por%20jornada%20operacional.pdf"},
-{t:"DECRETO Nº 28.829-2013 - REGIMENTO INTERNO DA SSP - DOEMA 21-01-2013",tp:"Decreto",tm:"Estrutura Organizacional",a:2013,f:"DECRETO%20N%C2%BA%2028.829-2013%20-%20REGIMENTO%20INTERNO%20DA%20SSP%20-%20DOEMA%2021-01-2013.pdf"},
+{t:"DECRETO Nº 28.829-2013 - REGIMENTO INTERNO DA SSP - DOEMA 21-01-2013",tp:"Regimento",tm:"Estrutura Organizacional",a:2013,f:"DECRETO%20N%C2%BA%2028.829-2013%20-%20REGIMENTO%20INTERNO%20DA%20SSP%20-%20DOEMA%2021-01-2013.pdf"},
 {t:"Decreto nº 28.860-2013-regulamenta a Lei nº 8.959-2009",tp:"Decreto",tm:"Administração",a:2009,f:"Decreto%20n%C2%BA%2028.860-2013-regulamenta%20a%20Lei%20n%C2%BA%208.959-2009.pdf"},
 {t:"DECRETO Nº 28.862 DE 2013 - Diárias  - PAG 21",tp:"Decreto",tm:"Administração",a:2013,f:"DECRETO%20N%C2%BA%2028.862%20DE%202013%20-%20Di%C3%A1rias%20%20-%20PAG%2021.pdf"},
 {t:"Decreto nº 28.888 2013",tp:"Decreto",tm:"Administração",a:2013,f:"Decreto%20n%C2%BA%2028.888_2013.pdf"},
@@ -423,10 +445,10 @@ var DOCS=[
 {t:"LEI N. 9.340-2011 - REFORMA ADMINISTRATIVA DO PODER EXECUTIVO",tp:"Lei",tm:"Administração",a:2011,f:"LEI%20N.%209.340-2011%20-%20REFORMA%20ADMINISTRATIVA%20DO%20PODER%20EXECUTIVO.pdf"},
 {t:"Lei nº 10.203-2015-autoriza representação judicial dos policiais civis, militares e bombeiros Maranhão",tp:"Lei",tm:"Administração",a:2015,f:"Lei%20n%C2%BA%2010.203-2015-autoriza%20representa%C3%A7%C3%A3o%20judicial%20dos%20policiais%20civis%2C%20militares%20e%20bombeiros%20Maranh%C3%A3o.pdf"},
 {t:"LEI Nº 10.213-2015 - Dispõe sobre sobre a estrutura orgânica do Poder Executivo",tp:"Lei",tm:"Administração",a:2015,f:"LEI%20N%C2%BA%2010.213-2015%20-%20Disp%C3%B5e%20sobre%20sobre%20a%20estrutura%20org%C3%A2nica%20do%20Poder%20Executivo.pdf"},
-{t:"Lei nº 10.227-2015 - dispõe sobre a utilização de veículos apreendidos",tp:"Lei",tm:"Investigação Criminal",a:2015,f:"Lei%20n%C2%BA%2010.227-2015%20-%20disp%C3%B5e%20sobre%20a%20utiliza%C3%A7%C3%A3o%20de%20ve%C3%ADculos%20apreendidos.pdf"},
+{t:"Lei nº 10.227-2015 - dispõe sobre a utilização de veículos apreendidos",tp:"Lei",tm:"Administração",a:2015,f:"Lei%20n%C2%BA%2010.227-2015%20-%20disp%C3%B5e%20sobre%20a%20utiliza%C3%A7%C3%A3o%20de%20ve%C3%ADculos%20apreendidos.pdf"},
 {t:"LEI Nº 10.238-2015 - ORGANIZAÇÃO DA POLÍCIA CIVIL",tp:"Lei",tm:"Estrutura Organizacional",a:2015,f:"LEI%20N%C2%BA%2010.238-2015%20-%20ORGANIZA%C3%87%C3%83O%20DA%20POL%C3%8DCIA%20CIVIL.pdf"},
 {t:"Lei nº 10.336-2015 - conversão da MP 209 - cessão de servidores",tp:"Lei",tm:"Gestão de Pessoal",a:2015,f:"Lei%20n%C2%BA%2010.336-2015%20-%20convers%C3%A3o%20da%20MP%20209%20-%20cess%C3%A3o%20de%20servidores.pdf"},
-{t:"Lei nº 10.410-2015 - dispõe sobre a utilização de veículo apreendido - DOEMA 30-12-2015",tp:"Lei",tm:"Investigação Criminal",a:2015,f:"Lei%20n%C2%BA%2010.410-2015%20-%20disp%C3%B5e%20sobre%20a%20utiliza%C3%A7%C3%A3o%20de%20ve%C3%ADculo%20apreendido%20-%20DOEMA%2030-12-2015.pdf"},
+{t:"Lei nº 10.410-2015 - dispõe sobre a utilização de veículo apreendido - DOEMA 30-12-2015",tp:"Lei",tm:"Administração",a:2015,f:"Lei%20n%C2%BA%2010.410-2015%20-%20disp%C3%B5e%20sobre%20a%20utiliza%C3%A7%C3%A3o%20de%20ve%C3%ADculo%20apreendido%20-%20DOEMA%2030-12-2015.pdf"},
 {t:"Lei nº 10.442-2016 - prêmio por apreensão de arma de fogo",tp:"Lei",tm:"Investigação Criminal",a:2016,f:"Lei%20n%C2%BA%2010.442-2016%20-%20pr%C3%AAmio%20por%20apreens%C3%A3o%20de%20arma%20de%20fogo.pdf"},
 {t:"Lei nº 10.464-2016 - Dispõe sobre licença-maternidade e licença-paternidade - altera a Lei nº 6.107-94",tp:"Lei",tm:"Gestão de Pessoal",a:2016,f:"Lei%20n%C2%BA%2010.464-2016%20-%20Disp%C3%B5e%20sobre%20licen%C3%A7a-maternidade%20e%20licen%C3%A7a-paternidade%20-%20altera%20a%20Lei%20n%C2%BA%206.107-94.pdf"},
 {t:"Lei nº 10.574-2017-execução fiscal-não ajuizamento",tp:"Lei",tm:"Administração",a:2017,f:"Lei%20n%C2%BA%2010.574-2017-execu%C3%A7%C3%A3o%20fiscal-n%C3%A3o%20ajuizamento.pdf"},
@@ -438,7 +460,7 @@ var DOCS=[
 {t:"Lei nº 6.107-94-Regime Jurídico dos Servidores do Maranhão",tp:"Lei",tm:"Gestão de Pessoal",a:2020,f:"Lei%20n%C2%BA%206.107-94-Regime%20Jur%C3%ADdico%20dos%20Servidores%20do%20Maranh%C3%A3o.pdf"},
 {t:"LEI Nº 6.546-1995 - CÓDIGO DE SEGURANÇA CONTRA INCÊNDIO E PÂNICO DO ESTADO DO MARANHÃO",tp:"Lei",tm:"Legislação",a:1995,f:"LEI%20N%C2%BA%206.546-1995%20-%20C%C3%93DIGO%20DE%20SEGURAN%C3%87A%20CONTRA%20INC%C3%8ANDIO%20E%20P%C3%82NICO%20DO%20ESTADO%20DO%20MARANH%C3%83O.pdf"},
 {t:"LEI Nº 7.681-2011 - ESTATUTO DA POLÍCIA CIVIL DO MARANHÃO - ANTERIOR À LEI Nº 8.508-2006",tp:"Lei",tm:"Legislação",a:2006,f:"LEI%20N%C2%BA%207.681-2011%20-%20ESTATUTO%20DA%20POL%C3%8DCIA%20CIVIL%20DO%20MARANH%C3%83O%20-%20ANTERIOR%20%C3%80%20LEI%20N%C2%BA%208.508-2006.pdf"},
-{t:"LEI Nº 7.760-2002 - CRIAÇÃO DE CARGOS NA SSP - ACADEMIA INTEGRADA DE SEGURANÇA PÚBLICA",tp:"Lei",tm:"Segurança Pública",a:2002,f:"LEI%20N%C2%BA%207.760-2002%20-%20CRIA%C3%87%C3%83O%20DE%20CARGOS%20NA%20SSP%20-%20ACADEMIA%20INTEGRADA%20DE%20SEGURAN%C3%87A%20P%C3%9ABLICA.pdf"},
+{t:"LEI Nº 7.760-2002 - CRIAÇÃO DE CARGOS NA SSP - ACADEMIA INTEGRADA DE SEGURANÇA PÚBLICA",tp:"Lei",tm:"Estrutura Organizacional",a:2002,f:"LEI%20N%C2%BA%207.760-2002%20-%20CRIA%C3%87%C3%83O%20DE%20CARGOS%20NA%20SSP%20-%20ACADEMIA%20INTEGRADA%20DE%20SEGURAN%C3%87A%20P%C3%9ABLICA.pdf"},
 {t:"Lei nº 7.799 - 2002",tp:"Lei",tm:"Administração",a:2002,f:"Lei%20n%C2%BA%207.799%20-%202002.pdf"},
 {t:"LEI Nº 8.362-2005 - SEGURANÇA DE EX-SECRETÁRIO DE SEGURANÇA",tp:"Lei",tm:"Segurança Pública",a:2005,f:"LEI%20N%C2%BA%208.362-2005%20-%20SEGURAN%C3%87A%20DE%20EX-SECRET%C3%81RIO%20DE%20SEGURAN%C3%87A.pdf"},
 {t:"LEI Nº 8.432-2006 - AUXÍLIO-ALIMENTAÇÃO E DEDICAÇÃO EXCLUSIVA - GRUPO APC",tp:"Lei",tm:"Gestão de Pessoal",a:2006,f:"LEI%20N%C2%BA%208.432-2006%20-%20AUX%C3%8DLIO-ALIMENTA%C3%87%C3%83O%20E%20DEDICA%C3%87%C3%83O%20EXCLUSIVA%20-%20GRUPO%20APC.pdf"},
@@ -451,7 +473,7 @@ var DOCS=[
 {t:"LEI Nº 8.959-2009 - ELABORAÇÃO E TRAMITAÇÃO DE ATOS E PROCESSOS ADMINISTRATIVOS - DO-08-05-2009",tp:"Lei",tm:"Estrutura Organizacional",a:2009,f:"LEI%20N%C2%BA%208.959-2009%20-%20ELABORA%C3%87%C3%83O%20E%20TRAMITA%C3%87%C3%83O%20DE%20ATOS%20E%20PROCESSOS%20ADMINISTRATIVOS%20-%20DO-08-05-2009.pdf"},
 {t:"Lei nº 9.562, de 07 de março de 2012 - poder de polícia",tp:"Lei",tm:"Legislação",a:2012,f:"Lei%20n%C2%BA%209.562%2C%20de%2007%20de%20mar%C3%A7o%20de%202012%20-%20poder%20de%20pol%C3%ADcia.pdf"},
 {t:"LEI Nº 9.664-2012 - PGCE - DO-17-07-2012",tp:"Lei",tm:"Gestão de Pessoal",a:2012,f:"LEI%20N%C2%BA%209.664-2012%20-%20PGCE%20-%20DO-17-07-2012.pdf"},
-{t:"Lei nº 9.712-2012-teste psicotécnico Polícia Civil",tp:"Lei",tm:"Administração",a:2012,f:"Lei%20n%C2%BA%209.712-2012-teste%20psicot%C3%A9cnico%20Pol%C3%ADcia%20Civil.pdf"},
+{t:"Lei nº 9.712-2012-teste psicotécnico Polícia Civil",tp:"Lei",tm:"Gestão de Pessoal",a:2012,f:"Lei%20n%C2%BA%209.712-2012-teste%20psicot%C3%A9cnico%20Pol%C3%ADcia%20Civil.pdf"},
 {t:"Lei nº 9.731-2012-altera anexos do PGCE",tp:"Lei",tm:"Gestão de Pessoal",a:2012,f:"Lei%20n%C2%BA%209.731-2012-altera%20anexos%20do%20PGCE.pdf"},
 {t:"LEI-8.508-2006 Estatuto da PC",tp:"Lei",tm:"Legislação",a:2006,f:"LEI-8.508-2006_Estatuto%20da%20PC.pdf"},
 {t:"Lei-nº-8.432-de-28-de-junho-de-2006 - altera o valor do auxílio formação. bolsa. alterou a lei 7038.1997",tp:"Lei",tm:"Gestão de Pessoal",a:1997,f:"Lei-n%C2%BA-8.432-de-28-de-junho-de-2006%20-%20altera%20o%20valor%20do%20aux%C3%ADlio%20forma%C3%A7%C3%A3o.%20bolsa.%20alterou%20a%20lei%207038.1997.pdf"},
@@ -482,7 +504,7 @@ var DOCS=[
 {t:"Ofício Circular nº 032024-GABSSPMA SEI 2024.190101.00731 - SEI. DIGITALIZAÇÃO.",tp:"Ofício Circular",tm:"Tecnologia da Informação",a:1901,f:"Of%C3%ADcio%20Circular%20n%C2%BA%20032024-GABSSPMA%20SEI%202024.190101.00731%20-%20SEI.%20DIGITALIZA%C3%87%C3%83O..pdf"},
 {t:"PARECER JURÍDICO 42-2011 - EXAME DE CORPO DE DELITO",tp:"Parecer",tm:"Perícia e Forense",a:2011,f:"PARECER%20JUR%C3%8DDICO%2042-2011%20-%20EXAME%20DE%20CORPO%20DE%20DELITO.pdf"},
 {t:"PARECER N. 523-2011-ASSEJUR-SSP - ESCALA DE PLANTÕES",tp:"Parecer",tm:"Plantões e Escalas",a:2011,f:"PARECER%20N.%20523-2011-ASSEJUR-SSP%20-%20ESCALA%20DE%20PLANT%C3%95ES.pdf"},
-{t:"Planejamento Estratégico para a Polícia Civil do Estado do Maranhão (2024-2027)",tp:"Material de Estudo",tm:"Material de Referência",a:2027,f:"Planejamento%20Estrat%C3%A9gico%20para%20a%20Pol%C3%ADcia%20Civil%20do%20Estado%20do%20Maranh%C3%A3o%20%282024-2027%29.pdf"},
+{t:"Planejamento Estratégico para a Polícia Civil do Estado do Maranhão (2024-2027)",tp:"Planejamento Estratégico",tm:"Material de Referência",a:2027,f:"Planejamento%20Estrat%C3%A9gico%20para%20a%20Pol%C3%ADcia%20Civil%20do%20Estado%20do%20Maranh%C3%A3o%20%282024-2027%29.pdf"},
 {t:"PLANO GERAL DE CARGOS DO PODER EXECUTIVO - ANEXOS",tp:"Material de Estudo",tm:"Administração",a:2020,f:"PLANO%20GERAL%20DE%20CARGOS%20DO%20PODER%20EXECUTIVO%20-%20ANEXOS.pdf"},
 {t:"PLANO GERAL DE CARGOS DO PODER EXECUTIVO",tp:"Material de Estudo",tm:"Administração",a:2020,f:"PLANO%20GERAL%20DE%20CARGOS%20DO%20PODER%20EXECUTIVO.pdf"},
 {t:"POLÍCIA - VALORIZAÇÃO DO PROFISSIONAL DA SEGURANÇA PÚBLICA",tp:"Material de Estudo",tm:"Segurança Pública",a:2020,f:"POL%C3%8DCIA%20-%20VALORIZA%C3%87%C3%83O%20DO%20PROFISSIONAL%20DA%20SEGURAN%C3%87A%20P%C3%9ABLICA.pdf"},
@@ -519,7 +541,7 @@ var DOCS=[
 {t:"PORTARIA 12 2012 ATRIBUIÇÕES SAISP PGS 12 a 13",tp:"Portaria",tm:"Estrutura Organizacional",a:2012,f:"PORTARIA%2012%202012%20ATRIBUI%C3%87%C3%95ES%20SAISP%20PGS%2012%20a%2013.pdf"},
 {t:"Portaria 133-2013 - Recolhimento de Arma-Recolhimento FESP",tp:"Portaria",tm:"Armamento",a:2013,f:"Portaria%20133-2013%20-%20Recolhimento%20de%20Arma-Recolhimento%20FESP.pdf"},
 {t:"Portaria 1346.2024 - Altera Portaria 699.2023 - Comitê SEI",tp:"Portaria",tm:"Tecnologia da Informação",a:2023,f:"Portaria%201346.2024%20-%20Altera%20Portaria%20699.2023%20-%20Comit%C3%AA%20SEI.pdf"},
-{t:"Portaria 14.2022 - DG PCMA - Supervisão de transporte. viatura. veículo",tp:"Portaria",tm:"Investigação Criminal",a:2022,f:"Portaria%2014.2022%20-%20DG%20PCMA%20-%20Supervis%C3%A3o%20de%20transporte.%20viatura.%20ve%C3%ADculo.pdf"},
+{t:"Portaria 14.2022 - DG PCMA - Supervisão de transporte. viatura. veículo",tp:"Portaria",tm:"Administração",a:2022,f:"Portaria%2014.2022%20-%20DG%20PCMA%20-%20Supervis%C3%A3o%20de%20transporte.%20viatura.%20ve%C3%ADculo.pdf"},
 {t:"Portaria 1445-2024 - Comissão Lei orgânica",tp:"Portaria",tm:"Legislação",a:2024,f:"Portaria%201445-2024%20-%20Comiss%C3%A3o%20Lei%20org%C3%A2nica.pdf"},
 {t:"Portaria 1515.2025 - Regulamente NOC",tp:"Portaria",tm:"Investigação Criminal",a:2025,f:"Portaria%201515.2025%20-%20Regulamente%20NOC.pdf"},
 {t:"PORTARIA 169.2025 - acautelamento ARMA DE FOGO APOSENTADO",tp:"Portaria",tm:"Gestão de Pessoal",a:2025,f:"PORTARIA%20169.2025%20-%20acautelamento%20ARMA%20DE%20FOGO%20APOSENTADO.pdf"},
@@ -537,7 +559,7 @@ var DOCS=[
 {t:"Portaria 435-2022 - Obrigatoriedade de registrar BO. Ocorrência Policial",tp:"Portaria",tm:"Investigação Criminal",a:2022,f:"Portaria%20435-2022%20-%20Obrigatoriedade%20de%20registrar%20BO.%20Ocorr%C3%AAncia%20Policial.pdf"},
 {t:"PORTARIA 437-2018 DG PCMA - Regulamenta Cursos Táticos - GRT",tp:"Portaria",tm:"Administração",a:2018,f:"PORTARIA%20437-2018%20DG%20PCMA%20-%20Regulamenta%20Cursos%20T%C3%A1ticos%20-%20GRT.pdf"},
 {t:"Portaria 47-2016 - SSP - concessõa de diárias e passagens aéreas",tp:"Portaria",tm:"Administração",a:2016,f:"Portaria%2047-2016%20-%20SSP%20-%20concess%C3%B5a%20de%20di%C3%A1rias%20e%20passagens%20a%C3%A9reas.pdf"},
-{t:"PORTARIA 489-2020 GAB SSPMA - Normatiza os procedimentos de manutenção e abastecimento de viaturas. E veículo apreendido",tp:"Portaria",tm:"Investigação Criminal",a:2020,f:"PORTARIA%20489-2020%20GAB%20SSPMA%20-%20Normatiza%20os%20procedimentos%20de%20manuten%C3%A7%C3%A3o%20e%20abastecimento%20de%20viaturas.%20E%20ve%C3%ADculo%20apreendido.pdf"},
+{t:"PORTARIA 489-2020 GAB SSPMA - Normatiza os procedimentos de manutenção e abastecimento de viaturas. E veículo apreendido",tp:"Portaria",tm:"Administração",a:2020,f:"PORTARIA%20489-2020%20GAB%20SSPMA%20-%20Normatiza%20os%20procedimentos%20de%20manuten%C3%A7%C3%A3o%20e%20abastecimento%20de%20viaturas.%20E%20ve%C3%ADculo%20apreendido.pdf"},
 {t:"PORTARIA 526.2016 SEAP - Regulamenta o recebimento de presos",tp:"Portaria",tm:"Administração Penitenciária",a:2016,f:"PORTARIA%20526.2016%20SEAP%20-%20Regulamenta%20o%20recebimento%20de%20presos.pdf"},
 {t:"Portaria 526.2025 - DG - PLANTAO REMOTO.php",tp:"Portaria",tm:"Plantões e Escalas",a:2025,f:"Portaria%20526.2025%20-%20DG%20-%20PLANTAO%20REMOTO.php.pdf"},
 {t:"PORTARIA 526.2025 DG - PLANTÃO REMOTO.VIRTUAL",tp:"Portaria",tm:"Plantões e Escalas",a:2025,f:"PORTARIA%20526.2025%20DG%20-%20PLANT%C3%83O%20REMOTO.VIRTUAL.pdf"},
@@ -574,7 +596,7 @@ var DOCS=[
 {t:"PORTARIA Nº  23-2024 - PERICIA OFICIAL",tp:"Portaria",tm:"Perícia e Forense",a:2024,f:"PORTARIA%20N%C2%BA%20%2023-2024%20-%20PERICIA%20OFICIAL.pdf"},
 {t:"PORTARIA Nº 001-2026 - SPCI",tp:"Portaria",tm:"Estrutura Organizacional",a:2026,f:"PORTARIA%20N%C2%BA%20001-2026%20-%20SPCI.pdf"},
 {t:"Portaria nº 002-2010-DGPC-MA",tp:"Portaria",tm:"Administração",a:2010,f:"Portaria%20n%C2%BA%20002-2010-DGPC-MA.pdf"},
-{t:"Portaria nº 01-2016 - DGPC-MA - disciplina a perda, furto e roubo de documentos e de veículos",tp:"Portaria",tm:"Investigação Criminal",a:2016,f:"Portaria%20n%C2%BA%2001-2016%20-%20DGPC-MA%20-%20disciplina%20a%20perda%2C%20furto%20e%20roubo%20de%20documentos%20e%20de%20ve%C3%ADculos.pdf"},
+{t:"Portaria nº 01-2016 - DGPC-MA - disciplina a perda, furto e roubo de documentos e de veículos",tp:"Portaria",tm:"Administração",a:2016,f:"Portaria%20n%C2%BA%2001-2016%20-%20DGPC-MA%20-%20disciplina%20a%20perda%2C%20furto%20e%20roubo%20de%20documentos%20e%20de%20ve%C3%ADculos.pdf"},
 {t:"PORTARIA Nº 010.2017 - DGPC-MA AVALIAÇÃO DE DESEMPENHO - ESTÁGIO PROBATÓRIO",tp:"Portaria",tm:"Gestão de Pessoal",a:2017,f:"PORTARIA%20N%C2%BA%20010.2017%20-%20DGPC-MA%20AVALIA%C3%87%C3%83O%20DE%20DESEMPENHO%20-%20EST%C3%81GIO%20PROBAT%C3%93RIO.pdf"},
 {t:"PORTARIA Nº 011.2012 - DG PC MA - ESCALA DE TRABALHO. JORNADA.",tp:"Portaria",tm:"Plantões e Escalas",a:2012,f:"PORTARIA%20N%C2%BA%20011.2012%20-%20DG%20PC%20MA%20-%20ESCALA%20DE%20TRABALHO.%20JORNADA..pdf"},
 {t:"PORTARIA Nº 0115-2015-DG-PCMA, DE 10 DE ABRIL DE 2015",tp:"Portaria",tm:"Administração",a:2015,f:"PORTARIA%20N%C2%BA%200115-2015-DG-PCMA%2C%20DE%2010%20DE%20ABRIL%20DE%202015.pdf"},
@@ -634,8 +656,8 @@ var DOCS=[
 {t:"Portaria 292 2026 PLANTAO REMOTO",tp:"Portaria",tm:"Administração",a:2026,f:"Portaria_292_2026_PLANTAO_REMOTO.pdf"},
 {t:"Portia nº 078-2012-DGPC-MA",tp:"Portaria",tm:"Administração",a:2012,f:"Portia%20n%C2%BA%20078-2012-DGPC-MA.pdf"},
 {t:"PROGRESSÃO DA PCMA - 2012",tp:"Material de Estudo",tm:"Gestão de Pessoal",a:2012,f:"PROGRESS%C3%83O%20DA%20PCMA%20-%202012.pdf"},
-{t:"PROPOSTA DE DIRETRIZES ESTRATÉGICAS DE GESTÃO",tp:"Material de Estudo",tm:"Material de Referência",a:2020,f:"PROPOSTA%20DE%20DIRETRIZES%20ESTRAT%C3%89GICAS%20DE%20GEST%C3%83O.pdf"},
-{t:"PROVIMENTO Nº 01-2013 - CORREGEDORIA DO TRIBUNAL DE JUSTIÇA - DISPÕE SOBRE A TRAMITAÇÃO DOS INQUÉRITOS POLICIAIS",tp:"Provimento",tm:"Processo Administrativo Disciplinar",a:2013,f:"PROVIMENTO%20N%C2%BA%2001-2013%20-%20CORREGEDORIA%20DO%20TRIBUNAL%20DE%20JUSTI%C3%87A%20-%20DISP%C3%95E%20SOBRE%20A%20TRAMITA%C3%87%C3%83O%20DOS%20INQU%C3%89RITOS%20POLICIAIS.pdf"},
+{t:"PROPOSTA DE DIRETRIZES ESTRATÉGICAS DE GESTÃO",tp:"Planejamento Estratégico",tm:"Material de Referência",a:2020,f:"PROPOSTA%20DE%20DIRETRIZES%20ESTRAT%C3%89GICAS%20DE%20GEST%C3%83O.pdf"},
+{t:"PROVIMENTO Nº 01-2013 - CORREGEDORIA DO TRIBUNAL DE JUSTIÇA - DISPÕE SOBRE A TRAMITAÇÃO DOS INQUÉRITOS POLICIAIS",tp:"Provimento",tm:"Estrutura Organizacional",a:2013,f:"PROVIMENTO%20N%C2%BA%2001-2013%20-%20CORREGEDORIA%20DO%20TRIBUNAL%20DE%20JUSTI%C3%87A%20-%20DISP%C3%95E%20SOBRE%20A%20TRAMITA%C3%87%C3%83O%20DOS%20INQU%C3%89RITOS%20POLICIAIS.pdf"},
 {t:"RELATORIO DAS CIRCUNSCRICOES DOS DISTRITOS POLICIAIS2. MAPA. ATRIBUIÇÃO",tp:"Material de Estudo",tm:"Estrutura Organizacional",a:2020,f:"RELATORIO%20DAS%20CIRCUNSCRICOES%20DOS%20DISTRITOS%20POLICIAIS2.%20MAPA.%20ATRIBUI%C3%87%C3%83O.pdf"},
 {t:"Resolucao GP 382021 - Dispõe sobre o depósito e destinação de armas.",tp:"Resolução",tm:"Armamento",a:2021,f:"Resolucao%20GP%20382021%20-%20Disp%C3%B5e%20sobre%20o%20dep%C3%B3sito%20e%20destina%C3%A7%C3%A3o%20de%20armas..pdf"},
 {t:"RESOLUÇÃO  Nº 01-2012 - CPC-PCMA,  DE  04 DE SETEMBRO DE 2012",tp:"Resolução",tm:"Administração",a:2012,f:"RESOLU%C3%87%C3%83O%20%20N%C2%BA%2001-2012%20-%20CPC-PCMA%2C%20%20DE%20%2004%20DE%20SETEMBRO%20DE%202012.pdf"},
@@ -657,15 +679,15 @@ var DOCS=[
 {t:"RESOLUÇÃO Nº 01-2014-CPC - PROCESSO SELETIVO PERMANENTE DE REMOÇÃO - POLÍCIA CIVIL",tp:"Resolução",tm:"Gestão de Pessoal",a:2014,f:"RESOLU%C3%87%C3%83O%20N%C2%BA%2001-2014-CPC%20-%20PROCESSO%20SELETIVO%20PERMANENTE%20DE%20REMO%C3%87%C3%83O%20-%20POL%C3%8DCIA%20CIVIL.pdf"},
 {t:"RESOLUÇÃO Nº 2-2012 - CPC-PCMA,  DE 10 DE OUTUBRO DE 2012",tp:"Resolução",tm:"Administração",a:2012,f:"RESOLU%C3%87%C3%83O%20N%C2%BA%202-2012%20-%20CPC-PCMA%2C%20%20DE%2010%20DE%20OUTUBRO%20DE%202012.pdf"},
 {t:"RESOLUÇÃO Nº 2-2012",tp:"Resolução",tm:"Administração",a:2012,f:"RESOLU%C3%87%C3%83O%20N%C2%BA%202-2012.pdf"},
-{t:"revogada-IN-No-005-2015-ATRIBUICOES-DA-SECCOR-NO-AMBITO-DA-PCMA",tp:"Material de Estudo",tm:"Estrutura Organizacional",a:2015,f:"revogada-IN-No-005-2015-ATRIBUICOES-DA-SECCOR-NO-AMBITO-DA-PCMA.pdf"},
+{t:"revogada-IN-No-005-2015-ATRIBUICOES-DA-SECCOR-NO-AMBITO-DA-PCMA",tp:"Instrução Normativa",tm:"Estrutura Organizacional",a:2015,f:"revogada-IN-No-005-2015-ATRIBUICOES-DA-SECCOR-NO-AMBITO-DA-PCMA.pdf"},
 {t:"SEI 2026.190102.13266",tp:"Ato Administrativo",tm:"Tecnologia da Informação",a:1901,f:"SEI_2026.190102.13266.pdf"},
 {t:"Sistema de Patrimônio do Estado do Maranhão",tp:"Material de Estudo",tm:"Administração",a:2020,f:"Sistema%20de%20Patrim%C3%B4nio%20do%20Estado%20do%20Maranh%C3%A3o.pdf"},
 {t:"SSP - PORTARIA SSP N 651-2020 CLASSIFICAÇÃO DE SIGILO",tp:"Material de Estudo",tm:"Segurança Pública",a:2020,f:"SSP%20-%20PORTARIA%20SSP%20N%20651-2020%20CLASSIFICA%C3%87%C3%83O%20DE%20SIGILO.pdf"},
 {t:"TERMO DE COOPERACAO N 01.2023 - remoção. depósito e guarda de veículos. DETRAN",tp:"Termo de Cooperação",tm:"Gestão de Pessoal",a:2023,f:"TERMO%20DE%20COOPERACAO%20N%2001.2023%20-%20remo%C3%A7%C3%A3o.%20dep%C3%B3sito%20e%20guarda%20de%20ve%C3%ADculos.%20DETRAN.pdf"},
 {t:"Termo de Cooperação 0058 2022 TJMA TCO",tp:"Termo de Cooperação",tm:"Administração",a:2022,f:"Termo%20de%20Coopera%C3%A7%C3%A3o%200058_2022_TJMA%20TCO.pdf"},
 {t:"Termo de cooperação tecnica nº 0008-2018-TJMA - DESTINAÇÃO DE OBJETOS E BENS APREENDIDOS NO CURSO DE INVESTIGAÇÕES POLICIAIS E DE PROCESSOS PENAIS",tp:"Termo de Cooperação",tm:"Investigação Criminal",a:2018,f:"Termo%20de%20coopera%C3%A7%C3%A3o%20tecnica%20n%C2%BA%200008-2018-TJMA%20-%20DESTINA%C3%87%C3%83O%20DE%20OBJETOS%20E%20BENS%20APREENDIDOS%20NO%20CURSO%20DE%20INVESTIGA%C3%87%C3%95ES%20POLICIAIS%20E%20DE%20PROCESSOS%20PENAIS.pdf"},
-{t:"PORTARIA Nº 18 2006 ASPLAN SSP - Copia",tp:"Portaria",tm:"Administração",a:2006,f:"_PORTARIA%20N%C2%BA%2018%202006%20ASPLAN%20SSP%20-%20Copia.pdf"},
-{t:"PORTARIA Nº 18 2006 ASPLAN SSP",tp:"Portaria",tm:"Administração",a:2006,f:"_PORTARIA%20N%C2%BA%2018%202006%20ASPLAN%20SSP.pdf"},
+{t:" PORTARIA Nº 18 2006 ASPLAN SSP - Copia",tp:"Portaria",tm:"Administração",a:2006,f:"_PORTARIA%20N%C2%BA%2018%202006%20ASPLAN%20SSP%20-%20Copia.pdf"},
+{t:" PORTARIA Nº 18 2006 ASPLAN SSP",tp:"Portaria",tm:"Administração",a:2006,f:"_PORTARIA%20N%C2%BA%2018%202006%20ASPLAN%20SSP.pdf"},
 {t:"ANEXO - VERBA INDENIZATÓRIA POR ACÚMULO DE FUNÇÃO",tp:"Material de Estudo",tm:"Administração",a:2020,f:"ANEXO%20-%20VERBA%20INDENIZAT%C3%93RIA%20POR%20AC%C3%9AMULO%20DE%20FUN%C3%87%C3%83O.doc"},
 {t:"Coletânea de normas aplicáveis à Polícia Civil-MA",tp:"Coletânea",tm:"Administração",a:2020,f:"Colet%C3%A2nea%20de%20normas%20aplic%C3%A1veis%20%C3%A0%20Pol%C3%ADcia%20Civil-MA.doc"},
 {t:"CONCURSO DE REMOÇÃO - PCMA",tp:"Material de Estudo",tm:"Gestão de Pessoal",a:2020,f:"CONCURSO%20DE%20REMO%C3%87%C3%83O%20-%20PCMA.doc"},
@@ -682,7 +704,7 @@ var DOCS=[
 {t:"MEDIDA PROVISÓRIA Nº -2014 - MINUTA - ALTERAÇÃO DA LEI Nº 8.508-2006",tp:"Lei",tm:"Legislação",a:2006,f:"MEDIDA%20PROVIS%C3%93RIA%20N%C2%BA%20-2014%20-%20MINUTA%20-%20ALTERA%C3%87%C3%83O%20DA%20LEI%20N%C2%BA%208.508-2006.doc"},
 {t:"MENSAGEM Nº ---2014 - PROJETO DE LEI QUE ALTERA A LEI Nº 8.508-2006",tp:"Lei",tm:"Legislação",a:2006,f:"MENSAGEM%20N%C2%BA%20---2014%20-%20PROJETO%20DE%20LEI%20QUE%20ALTERA%20A%20LEI%20N%C2%BA%208.508-2006.doc"},
 {t:"OFÍCIO - PROJETO DE LEI - SINPOL - A APRTIR DE 2015",tp:"Material de Estudo",tm:"Legislação",a:2015,f:"OF%C3%8DCIO%20-%20PROJETO%20DE%20LEI%20-%20SINPOL%20-%20A%20APRTIR%20DE%202015.doc"},
-{t:"PLANEJAMENTO ESTRATÉGICO DA POLÍCIA CIVIL DO MARANHÃO - 2010",tp:"Material de Estudo",tm:"Material de Referência",a:2010,f:"PLANEJAMENTO%20ESTRAT%C3%89GICO%20DA%20POL%C3%8DCIA%20CIVIL%20DO%20MARANH%C3%83O%20-%202010.doc"},
+{t:"PLANEJAMENTO ESTRATÉGICO DA POLÍCIA CIVIL DO MARANHÃO - 2010",tp:"Planejamento Estratégico",tm:"Material de Referência",a:2010,f:"PLANEJAMENTO%20ESTRAT%C3%89GICO%20DA%20POL%C3%8DCIA%20CIVIL%20DO%20MARANH%C3%83O%20-%202010.doc"},
 {t:"PORTARIA Nº --2014 - DISPOSIÇÃO DE POLICIAIS CIVIS - FUNÇÕES NÃO VINCULADAS À ATIVIDADE-FIM DA POLÍCIA CIVIL - DELEGACIA-GERAL",tp:"Portaria",tm:"Administração",a:2014,f:"PORTARIA%20N%C2%BA%20--2014%20-%20DISPOSI%C3%87%C3%83O%20DE%20POLICIAIS%20CIVIS%20-%20FUN%C3%87%C3%95ES%20N%C3%83O%20VINCULADAS%20%C3%80%20ATIVIDADE-FIM%20DA%20POL%C3%8DCIA%20CIVIL%20-%20DELEGACIA-GERAL.doc"},
 {t:"PORTARIA Nº --2014 - REVOGAÇÃO DA PORTARIA Nº 454-2014",tp:"Portaria",tm:"Administração",a:2014,f:"PORTARIA%20N%C2%BA%20--2014%20-%20REVOGA%C3%87%C3%83O%20DA%20PORTARIA%20N%C2%BA%20454-2014.doc"},
 {t:"PORTARIA Nº -2013 - SUSPENSÃO DE PRAZOS RECURSAIS DURANTE AS FÉRIAS COLETIVAS",tp:"Portaria",tm:"Gestão de Pessoal",a:2013,f:"PORTARIA%20N%C2%BA%20-2013%20-%20SUSPENS%C3%83O%20DE%20PRAZOS%20RECURSAIS%20DURANTE%20AS%20F%C3%89RIAS%20COLETIVAS.doc"},
@@ -701,13 +723,15 @@ fetch("https://juridicopcma.github.io/respositorioPCMA/textos_limpo.json").then(
 function esc(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")}
 function hl(txt,q){if(!q)return esc(txt);var r="",j=0,tl=txt.toLowerCase(),ql=q.toLowerCase(),n=ql.length;while(j<txt.length){var k=tl.indexOf(ql,j);if(k<0){r+=esc(txt.slice(j));break}r+=esc(txt.slice(j,k))+"<mark>"+esc(txt.slice(k,k+n))+"</mark>";j=k+n}return r}
 function trecho(txt,q){if(!txt||!q)return"";var tl=txt.toLowerCase(),ql=q.toLowerCase(),i=tl.indexOf(ql);if(i<0)return"";var a=Math.max(0,i-90),b=Math.min(txt.length,i+q.length+90);return hl((a>0?"...":"")+txt.slice(a,b)+(b<txt.length?"...":""),q)}
-function filtrados(){var q=document.getElementById("busca").value.trim().toLowerCase();var r=DOCS.filter(function(d){if(filtro!=="Todos"&&d.tp!==filtro)return false;if(!q)return true;var t=textos[decodeURIComponent(d.f)]||"";return d.t.toLowerCase().indexOf(q)>=0||d.tm.toLowerCase().indexOf(q)>=0||d.tp.toLowerCase().indexOf(q)>=0||String(d.a).indexOf(q)>=0||t.indexOf(q)>=0});if(q)r.sort(function(a,b){return b.a-a.a});return r}
-function card(d,q){var c=COR[d.tp]||"#374151",ct=COR_T[d.tp]||"#e5e7eb";var t=textos[decodeURIComponent(d.f)]||"",tr=trecho(t,q);var idx=DOCS.indexOf(d);return'<div class="card"><div class="card-topo"><span class="card-titulo">'+hl(d.t,q)+'</span><div class="card-meta"><span class="badge" style="background:'+c+';color:'+ct+'">'+esc(d.tp)+'</span><span class="ano">'+d.a+'</span></div></div>'+(tr?'<div class="trecho">'+tr+'</div>':'')+('<div class="card-rodape"><button class="btn-visualizar" onclick="abrirM('+idx+')">👁️ Visualizar</button><a class="btn-abrir" href="'+BASE+encodeURIComponent(decodeURIComponent(d.f))+'" target="_blank" download>📥 Baixar</a></div></div>')}
+function limparPeriodo(){document.getElementById("ano-de").value="";document.getElementById("ano-ate").value="";onB()}
+function isRevogado(d){var nl=d.t.toLowerCase();return nl.indexOf("revogad")>=0||nl.indexOf("revogada")>=0||nl.indexOf("revogado")>=0}
+function filtrados(){var q=document.getElementById("busca").value.trim().toLowerCase();var ade=document.getElementById("ano-de").value.trim();var aate=document.getElementById("ano-ate").value.trim();var adeN=ade?parseInt(ade):0;var aateN=aate?parseInt(aate):9999;var r=DOCS.filter(function(d){if(filtro!=="Todos"&&d.tp!==filtro)return false;if(adeN&&d.a<adeN)return false;if(aateN<9999&&d.a>aateN)return false;if(!q)return true;var t=textos[decodeURIComponent(d.f)]||"";return d.t.toLowerCase().indexOf(q)>=0||d.tm.toLowerCase().indexOf(q)>=0||d.tp.toLowerCase().indexOf(q)>=0||String(d.a).indexOf(q)>=0||t.indexOf(q)>=0});if(q)r.sort(function(a,b){return b.a-a.a});return r}
+function card(d,q){var c=COR[d.tp]||"#374151",ct=COR_T[d.tp]||"#e5e7eb";var t=textos[decodeURIComponent(d.f)]||"",tr=trecho(t,q);var idx=DOCS.indexOf(d);var rev=isRevogado(d)?'<span class="badge-revogado">REVOGADO</span>':'';return'<div class="card"><div class="card-topo"><span class="card-titulo">'+hl(d.t,q)+rev+'</span><div class="card-meta"><span class="badge" style="background:'+c+';color:'+ct+'">'+esc(d.tp)+'</span><span class="ano">'+d.a+'</span></div></div>'+(tr?'<div class="trecho">'+tr+'</div>':'')+('<div class="card-rodape"><button class="btn-visualizar" onclick="abrirM('+idx+')">👁️ Visualizar</button><a class="btn-abrir" href="'+BASE+encodeURIComponent(decodeURIComponent(d.f))+'" target="_blank" download>📥 Baixar</a></div></div>')}
 function abrirM(i){var d=DOCS[i];var url=BASE+decodeURIComponent(d.f);document.getElementById("modal-nome").textContent=d.t;document.getElementById("modal-dl").href=url;document.getElementById("modal-iframe").src="https://mozilla.github.io/pdf.js/web/viewer.html?file="+encodeURIComponent(url);document.getElementById("modal-bg").classList.add("aberto");document.body.style.overflow="hidden"}
 function fecharM(){document.getElementById("modal-bg").classList.remove("aberto");document.getElementById("modal-iframe").src="";document.body.style.overflow=""}
 document.addEventListener("keydown",function(e){if(e.key==="Escape")fecharM()});
-function rF(){document.getElementById("filtros").innerHTML=tipos.map(function(t){return'<button class="fb'+(filtro===t?" ativo":"")+'" onclick="setF(this)">'+esc(t)+'</button>'}).join("")}
-function setF(el){filtro=el.textContent;rF();render()}
+function rF(){document.getElementById("filtros").innerHTML=tipos.map(function(t){var c=0;if(t==="Todos")c=DOCS.length;else DOCS.forEach(function(d){if(d.tp===t)c++});return'<button class="fb'+(filtro===t?' ativo':'')+'" onclick="setF(this)">'+esc(t)+' ('+c+')</button>'}).join("")}
+function setF(el){filtro=el.textContent.replace(/ \(\d+\)/,"");rF();render()}
 function setA(a){aba=a;document.getElementById("at").className="aba"+(a==="t"?" ativa":"");document.getElementById("ab").className="aba"+(a==="b"?" ativa":"");render()}
 function onB(){var v=document.getElementById("busca").value.trim();if(v)setA("b");else setA("t");render()}
 function render(){if(!ok){document.getElementById("conteudo").innerHTML='<p class="carregando">Carregando acervo normativo...</p>';return}var q=document.getElementById("busca").value.trim(),ds=filtrados(),el=document.getElementById("conteudo");document.getElementById("ab").textContent="Resultados da Busca"+(q?" ("+ds.length+")":"");if(aba==="t"&&!q){var m={};ds.forEach(function(d){if(!m[d.tm])m[d.tm]=[];m[d.tm].push(d)});var temas=Object.keys(m);if(!temas.length){el.innerHTML='<p class="vazio">Nenhum documento encontrado.</p>';return}el.innerHTML=temas.map(function(tm){return'<div class="secao"><button class="sh" onclick="tog(this)"><span class="sh-icone">'+(ICO[tm]||"📄")+'</span><span class="sh-titulo">'+esc(tm)+'</span><span class="sh-count">'+m[tm].length+'</span><span class="sh-toggle">▲</span></button><div class="sd">'+m[tm].map(function(d){return card(d,"")}).join("")+'</div></div>'}).join("")}else{if(!ds.length){el.innerHTML='<p class="vazio">Nenhum resultado para "'+esc(q)+'".</p>';return}el.innerHTML='<p class="ri">'+ds.length+' documento'+(ds.length>1?"s":"")+" encontrado"+(ds.length>1?"s":"")+" para <strong>"+esc(q)+"</strong></p>"+ds.map(function(d){return'<div class="resultado-card">'+card(d,q)+'</div>'}).join("")}}
