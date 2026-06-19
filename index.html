@@ -718,7 +718,7 @@ var DOCS=[
 {t:"PROPOSTA DE REVISÃO DA LEI Nº 8.508-2006",tp:"Lei",tm:"Legislação",a:2006,f:"PROPOSTA%20DE%20REVIS%C3%83O%20DA%20LEI%20N%C2%BA%208.508-2006.doc"}
 ];
 var textos={},tipos=["Todos"],aba="t",filtro="Todos",ok=false;
-DOCS.forEach(function(d){if(tipos.indexOf(d.tp)<0)tipos.push(d.tp)});
+DOCS.forEach(function(d){if(tipos.indexOf(d.tp)<0)tipos.push(d.tp)});tipos.sort(function(a,b){if(a==="Todos")return-1;if(b==="Todos")return 1;return a.localeCompare(b,"pt")});
 fetch("https://juridicopcma.github.io/respositorioPCMA/textos_limpo.json").then(function(r){return r.json()}).then(function(d){textos=d;ok=true;render()}).catch(function(){ok=true;render()});
 function esc(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")}
 function hl(txt,q){if(!q)return esc(txt);var r="",j=0,tl=txt.toLowerCase(),ql=q.toLowerCase(),n=ql.length;while(j<txt.length){var k=tl.indexOf(ql,j);if(k<0){r+=esc(txt.slice(j));break}r+=esc(txt.slice(j,k))+"<mark>"+esc(txt.slice(k,k+n))+"</mark>";j=k+n}return r}
