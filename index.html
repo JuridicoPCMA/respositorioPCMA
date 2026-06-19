@@ -83,7 +83,7 @@ footer strong{color:rgba(255,255,255,.8)}
 <header>
 <div class="header-inner">
 <div class="header-top">
-<img class="brasao" src="https://raw.githubusercontent.com/BRENOGALDINO/repositorio_PCMA/main/brasao_pcma.png" alt="Brasão PCMA" onerror="this.style.display='none'"/>
+<img class="brasao" src="https://raw.githubusercontent.com/juridicopcma/respositorioPCMA/main/brasao_pcma.png" alt="Brasão PCMA" onerror="this.style.display='none'"/>
 <div>
 <div class="header-eyebrow">Polícia Civil do Maranhão</div>
 <div class="header-titulo">Base Normativa</div>
@@ -116,7 +116,7 @@ footer strong{color:rgba(255,255,255,.8)}
 <iframe id="modal-iframe" src=""></iframe>
 </div>
 <script>
-var BASE="https://raw.githubusercontent.com/BRENOGALDINO/repositorio_PCMA/main/";
+var BASE="https://raw.githubusercontent.com/juridicopcma/respositorioPCMA/main/";
 var COR={"Decreto":"#7c2d12","Instrução Normativa":"#1e3a8a","Portaria":"#14532d","Resolução":"#4c1d95","Lei":"#713f12","Lei Complementar":"#7c2d00","Manual":"#134e4a","Material de Estudo":"#374151","Coletânea":"#1e3a8a","Nota Técnica":"#831843","Cartilha":"#7c2d12","Medida Provisória":"#064e3b","Diário Oficial":"#1e3a5f","Convênio":"#4c1d5f","Termo de Cooperação":"#14532d","Ato Administrativo":"#3f3f00","Ofício Circular":"#7c1a2a","Parecer":"#1a4a1a","Provimento":"#1a2a5f","Termo Aditivo":"#5f2a1a","Emenda Constitucional":"#4a1a3a"};
 var COR_T={"Decreto":"#fed7aa","Instrução Normativa":"#bfdbfe","Portaria":"#bbf7d0","Resolução":"#ede9fe","Lei":"#fef3c7","Lei Complementar":"#fde68a","Manual":"#ccfbf1","Material de Estudo":"#e5e7eb","Coletânea":"#bfdbfe","Nota Técnica":"#fce7f3","Cartilha":"#fed7aa","Medida Provisória":"#a7f3d0","Diário Oficial":"#bfdbfe","Convênio":"#ede9fe","Termo de Cooperação":"#bbf7d0","Ato Administrativo":"#fef9c3","Ofício Circular":"#fecdd3","Parecer":"#bbf7d0","Provimento":"#bfdbfe","Termo Aditivo":"#fed7aa","Emenda Constitucional":"#fce7f3"};
 var ICO={"Estrutura Organizacional":"🏢","Administração":"📋","Gestão de Pessoal":"👥","Plantões e Escalas":"🕐","Investigação Criminal":"🔍","Perícia e Forense":"🔬","Processo Administrativo Disciplinar":"⚖️","Legislação":"📜","Segurança Pública":"🛡️","Comunicação Institucional":"📢","Armamento":"🔒","Tecnologia da Informação":"💻","Material de Referência":"📚","Direitos Humanos":"🤝","Administração Penitenciária":"🏛️"};
@@ -697,7 +697,7 @@ var DOCS=[
 ];
 var textos={},tipos=["Todos"],aba="t",filtro="Todos",ok=false;
 DOCS.forEach(function(d){if(tipos.indexOf(d.tp)<0)tipos.push(d.tp)});
-fetch("https://brenogaldino.github.io/repositorio_PCMA/textos_limpo.json").then(function(r){return r.json()}).then(function(d){textos=d;ok=true;render()}).catch(function(){ok=true;render()});
+fetch("https://juridicopcma.github.io/respositorioPCMA/textos_limpo.json").then(function(r){return r.json()}).then(function(d){textos=d;ok=true;render()}).catch(function(){ok=true;render()});
 function esc(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")}
 function hl(txt,q){if(!q)return esc(txt);var r="",j=0,tl=txt.toLowerCase(),ql=q.toLowerCase(),n=ql.length;while(j<txt.length){var k=tl.indexOf(ql,j);if(k<0){r+=esc(txt.slice(j));break}r+=esc(txt.slice(j,k))+"<mark>"+esc(txt.slice(k,k+n))+"</mark>";j=k+n}return r}
 function trecho(txt,q){if(!txt||!q)return"";var tl=txt.toLowerCase(),ql=q.toLowerCase(),i=tl.indexOf(ql);if(i<0)return"";var a=Math.max(0,i-90),b=Math.min(txt.length,i+q.length+90);return hl((a>0?"...":"")+txt.slice(a,b)+(b<txt.length?"...":""),q)}
